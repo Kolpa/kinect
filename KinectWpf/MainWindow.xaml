@@ -10,10 +10,12 @@
     <Grid
         Loaded="FrameworkElement_OnLoaded">
         <Custom:KinectRegion x:Name="kinectRegion" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top" Height="299" Width="497">
-            <Label x:Name="label" Content="Label" HorizontalAlignment="Left" Margin="240,76,0,0" VerticalAlignment="Top"/>
+            <Label x:Name="label" Content="Label" HorizontalAlignment="Left" Margin="231,115,0,0" VerticalAlignment="Top"/>
 
         </Custom:KinectRegion>
-        <Slider x:Name="slider" Minimum="20" Maximum="20000" HorizontalAlignment="Left" VerticalAlignment="Top" Width="487" Margin="10,214,0,0"/>
+        
+        <Slider x:Name="slider" ValueChanged="slider_ValueChanged" Minimum="80" Maximum="8600" HorizontalAlignment="Left" VerticalAlignment="Top" Width="487" Margin="10,214,0,0"/>
+        <Button x:Name="button" Click="Button_OnClick" Content="Button" HorizontalAlignment="Left" Margin="211,84,0,0" VerticalAlignment="Top" Width="75"/>
 
     </Grid>
 </Window>

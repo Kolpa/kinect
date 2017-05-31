@@ -5,6 +5,7 @@ using Microsoft.Kinect;
 using Microsoft.Kinect.Wpf.Controls;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using System.Threading;
 
 namespace KinectWpf
 {
@@ -15,6 +16,12 @@ namespace KinectWpf
     {
         private WaveOut _wout;
         private SignalGenerator _generator;
+
+        private double targetPitch;
+        private double currentPitch;
+
+        private bool run;
+
         public MainWindow()
         {
             _wout = new WaveOut();
@@ -22,6 +29,10 @@ namespace KinectWpf
 
             _wout.Init(_generator);
             _wout.Volume = 0.01F;
+
+            targetPitch = currentPitch = 2000;
+
+            run = true;
 
             InitializeComponent();
         }
@@ -53,12 +64,14 @@ namespace KinectWpf
 
                         if (pitch > 0)
                         {
-                            double newPitch = (pitch - 0) * (20000 - 20) / (0.5 - 0) + 20;
+                            double newPitch = (pitch - 0) * (8600 - 80) / (0.5 - 0) + 80;
 
                             Debug.WriteLine(pitch + "-" + newPitch);
 
                             label.Content = newPitch + "HZ";
                             slider.Value = newPitch;
+
+                            targetPitch = newPitch;
 
                             _generator.Frequency = newPitch;
                         }
@@ -69,10 +82,38 @@ namespace KinectWpf
             kinectRegion.KinectSensor.Open();
         }
 
+        private void PlaybackLoop()
+        {
+            _wout.Play();
+
+            while (run)
+            {
+                if (currentPitch != targetPitch)
+                {
+                    double diff = currentPitch - targetPitch;
+                    if (diff > 0)
+                    {
+                        currentPitch -= diff / 100;
+                    } else if (diff < 0)
+                    {
+                        currentPitch += -1 * (diff / 100);
+                    }
+                    Thread.Sleep(5);
+                }
+                _generator.Frequency = currentPitch;
+            }
+        }
+
         private void Button_OnClick(object sender, RoutedEventArgs e)
         {
-            _wout.Stop();
-            _wout.Dispose();
+            Thread t = new Thread(PlaybackLoop);
+            t.Start();
+            button.Content = "Started";
+        }
+
+        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            //targetPitch = slider.Value;
         }
     }
 }
