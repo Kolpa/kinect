@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using Microsoft.Kinect;
@@ -17,90 +18,48 @@ namespace KinectWpf
         private WaveOut _wout;
         private SignalGenerator _generator;
 
-        private double targetPitch;
-        private double currentPitch;
+        private KinectWorker _kinectWorker;
 
-        private bool run;
+        private double _targetPitch;
+
+        private bool _run;
 
         public MainWindow()
         {
             _wout = new WaveOut();
             _generator = new SignalGenerator();
+            _generator.Type = SignalGeneratorType.Sin;
 
             _wout.Init(_generator);
-            _wout.Volume = 0.01F;
+            _wout.Volume = 1F;
 
-            targetPitch = currentPitch = 2000;
+            _run = true;
 
-            run = true;
+            _kinectWorker = new KinectWorker(KinectSensor.GetDefault());
+            _kinectWorker.VolumeArrived += KinectWorkerOnVolumeArrived;
+            _kinectWorker.PitchArrived += KinectWorkerOnPitchArrived;
 
             InitializeComponent();
         }
 
-        private void FrameworkElement_OnLoaded(object sender, RoutedEventArgs e)
+        private void KinectWorkerOnPitchArrived(double pitch)
         {
-            KinectRegion.SetKinectRegion(this, kinectRegion);
-            kinectRegion.KinectSensor = KinectSensor.GetDefault();
-            BodyFrameReader multiSourceFrameReader = kinectRegion.KinectSensor.BodyFrameSource.OpenReader();
-            multiSourceFrameReader.FrameArrived += (o, args) =>
-            {
-                
-                Debug.WriteLine("got frame");
-                BodyFrame frame = args.FrameReference.AcquireFrame();
+            _targetPitch = pitch;
+            slider.Value = pitch;
+        }
 
-                Body[] bodies = new Body[frame.BodyCount];
-
-                frame.GetAndRefreshBodyData(bodies);
-
-                foreach (Body body in bodies)
-                {
-                    Joint rightHand = body.Joints[JointType.HandRight];
-                    Joint center = body.Joints[JointType.SpineMid];
-
-                    if (center.TrackingState == TrackingState.Tracked &&
-                        rightHand.TrackingState == TrackingState.Tracked)
-                    {
-                        float pitch = rightHand.Position.Y - center.Position.Y;
-
-                        if (pitch > 0)
-                        {
-                            double newPitch = (pitch - 0) * (8600 - 80) / (0.5 - 0) + 80;
-
-                            Debug.WriteLine(pitch + "-" + newPitch);
-
-                            label.Content = newPitch + "HZ";
-                            slider.Value = newPitch;
-
-                            targetPitch = newPitch;
-
-                            _generator.Frequency = newPitch;
-                        }
-                    }
-                }
-                Debug.WriteLine("frame done");
-            };
-            kinectRegion.KinectSensor.Open();
+        private void KinectWorkerOnVolumeArrived(float volume)
+        {
+            _wout.Volume = volume;
         }
 
         private void PlaybackLoop()
         {
             _wout.Play();
 
-            while (run)
+            while (_run)
             {
-                if (currentPitch != targetPitch)
-                {
-                    double diff = currentPitch - targetPitch;
-                    if (diff > 0)
-                    {
-                        currentPitch -= diff / 100;
-                    } else if (diff < 0)
-                    {
-                        currentPitch += -1 * (diff / 100);
-                    }
-                    Thread.Sleep(5);
-                }
-                _generator.Frequency = currentPitch;
+                _generator.Frequency = _targetPitch;
             }
         }
 
@@ -111,9 +70,9 @@ namespace KinectWpf
             button.Content = "Started";
         }
 
-        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
-            //targetPitch = slider.Value;
+            _run = false;
         }
     }
 }
