@@ -16,7 +16,7 @@ namespace KinectWpf
     public partial class MainWindow : Window
     {
         private WaveOut _wout;
-        private SignalGenerator _generator;
+        private SineWaveMaker _generator;
 
         private KinectWorker _kinectWorker;
 
@@ -27,8 +27,7 @@ namespace KinectWpf
         public MainWindow()
         {
             _wout = new WaveOut();
-            _generator = new SignalGenerator();
-            _generator.Type = SignalGeneratorType.Sin;
+            _generator = new SineWaveMaker();
 
             _wout.Init(_generator);
             _wout.Volume = 1F;
@@ -44,23 +43,18 @@ namespace KinectWpf
 
         private void KinectWorkerOnPitchArrived(double pitch)
         {
-            _targetPitch = pitch;
+            _generator.Frequency = slider;
             slider.Value = pitch;
         }
 
         private void KinectWorkerOnVolumeArrived(float volume)
         {
-            _wout.Volume = volume;
+            _generator.Amplitude = volume;
         }
 
         private void PlaybackLoop()
         {
             _wout.Play();
-
-            while (_run)
-            {
-                _generator.Frequency = _targetPitch;
-            }
         }
 
         private void Button_OnClick(object sender, RoutedEventArgs e)
@@ -73,6 +67,11 @@ namespace KinectWpf
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
             _run = false;
+        }
+
+        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            _generator.Frequency = slider.Value;
         }
     }
 }
