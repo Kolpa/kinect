@@ -16,7 +16,11 @@ namespace KinectWpf
     public partial class MainWindow : Window
     {
         private WaveOut _wout;
+
+        private MixingWaveProvider32 _provider;
+
         private SineWaveMaker _generator;
+        private SineWaveMaker _generator2;
 
         private KinectWorker _kinectWorker;
 
@@ -27,9 +31,17 @@ namespace KinectWpf
         public MainWindow()
         {
             _wout = new WaveOut();
-            _generator = new SineWaveMaker();
 
-            _wout.Init(_generator);
+            _provider = new MixingWaveProvider32();
+
+            _generator = new SineWaveMaker();
+            _generator2 = new SineWaveMaker();
+
+            _provider.AddInputStream(_generator);
+            _provider.AddInputStream(_generator2);
+            _provider.RemoveInputStream(_generator);
+
+            _wout.Init(_provider);
             _wout.Volume = 1F;
 
             _run = true;
@@ -43,7 +55,7 @@ namespace KinectWpf
 
         private void KinectWorkerOnPitchArrived(double pitch)
         {
-            _generator.Frequency = slider;
+            _generator.Frequency = pitch;
             slider.Value = pitch;
         }
 
