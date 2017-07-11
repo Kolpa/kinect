@@ -68,7 +68,7 @@ namespace KinectWpf
 
                     if (pitch > 0)
                     {
-                        double newPitch = (pitch - 0) * (1040 - 261.6) / (0.5 - 0) + 261.6;
+                        double newPitch = (pitch - 0) * (1000 - 150) / (0.5 - 0) + 150;
                         PitchArrived?.Invoke(newPitch);
                     }
 

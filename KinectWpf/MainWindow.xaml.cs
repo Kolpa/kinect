@@ -17,7 +17,7 @@ namespace KinectWpf
     {
         private WaveOut _wout;
 
-        private MixingWaveProvider32 _provider;
+        private PitchMultiplexer _provider;
 
         private SineWaveMaker _generator;
         private SineWaveMaker _generator2;
@@ -32,17 +32,13 @@ namespace KinectWpf
         {
             _wout = new WaveOut();
 
-            _provider = new MixingWaveProvider32();
-
             _generator = new SineWaveMaker();
-            _generator2 = new SineWaveMaker();
+            _generator2 = new SineWaveMaker {Frequency = 4};
 
-            _provider.AddInputStream(_generator);
-            _provider.AddInputStream(_generator2);
-            _provider.RemoveInputStream(_generator);
+            _provider = new PitchMultiplexer(_generator, _generator2);
 
             _wout.Init(_provider);
-            _wout.Volume = 1F;
+            _wout.Volume = 0.5F;
 
             _run = true;
 
